@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Arash Ghobadi — Portfolio
+title: Artin Ghobadi — Portfolio
 ---
 
 <section class="hero">
