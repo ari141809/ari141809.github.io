@@ -1,0 +1,38 @@
+title: "Arash Ghobadi — Projects & Adventures"
+description: "Electrical Engineering • Bouldering Analysis • Mountaineering & Hiking Logs"
+baseurl: ""
+url: ""
+markdown: kramdown
+theme: null
+collections:
+  engineering:
+    output: true
+    permalink: /engineering/:name/
+  bouldering:
+    output: true
+    permalink: /bouldering/:name/
+  mountaineering:
+    output: true
+    permalink: /mountaineering/:name/
+defaults:
+  - scope:
+      path: ""
+      type: "engineering"
+    values:
+      layout: article
+      category: "Engineering"
+      toc: true
+  - scope:
+      path: ""
+      type: "bouldering"
+    values:
+      layout: article
+      category: "Bouldering"
+      toc: true
+  - scope:
+      path: ""
+      type: "mountaineering"
+    values:
+      layout: article
+      category: "Mountaineering"
+      toc: true

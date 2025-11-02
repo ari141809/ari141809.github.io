@@ -1,0 +1,12 @@
+<div class="card">
+  <a class="card-link" href="{{ item.url | relative_url }}">
+    <h3>{{ item.title }}</h3>
+    <p class="muted">
+      {% if item.category %}{{ item.category }} · {% endif %}
+      {% if item.date %}{{ item.date | date: "%b %Y" }}{% endif %}
+      {% if item.grade %} · {{ item.grade }}{% endif %}
+      {% if item.location %} · {{ item.location }}{% endif %}
+    </p>
+    {% if item.excerpt %}<p>{{ item.excerpt | strip_html | truncate: 140 }}</p>{% endif %}
+  </a>
+</div>

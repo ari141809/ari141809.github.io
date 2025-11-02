@@ -1,0 +1,40 @@
+---
+layout: default
+---
+<div class="content-grid">
+  <article class="content">
+    <h1>{{ page.title }}</h1>
+    <ul class="meta">
+      {% if page.category %}<li><strong>Category:</strong> {{ page.category }}{% endif %}
+      {% if page.date %}<li><strong>Date:</strong> {{ page.date | date: "%b %d, %Y" }}{% endif %}
+      {% if page.status %}<li><strong>Status:</strong> {{ page.status }}{% endif %}
+      {% if page.location %}<li><strong>Location:</strong> {{ page.location }}{% endif %}
+      {% if page.grade %}<li><strong>Grade:</strong> {{ page.grade }}{% endif %}
+      {% if page.tools %}<li><strong>Tools:</strong> {{ page.tools | array_to_sentence_string }}{% endif %}
+      {% if page.links %}<li><strong>Links:</strong>
+        {% for l in page.links %}
+          <a href="{{ l.url }}">{{ l.title }}</a>{% if forloop.last == false %}, {% endif %}
+        {% endfor %}
+      {% endif %}
+    </ul>
+
+    <div id="article-body">
+      {{ content }}
+    </div>
+
+    {% if page.images %}
+    <div class="gallery">
+      {% for img in page.images %}
+        <figure><img src="{{ img | relative_url }}" alt=""></figure>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </article>
+
+  <aside class="right-toc" {% unless page.toc %}hidden{% endunless %}>
+    <div class="toc-card">
+      <div class="toc-title">On this page</div>
+      <nav id="toc"></nav>
+    </div>
+  </aside>
+</div>
