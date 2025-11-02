@@ -5,7 +5,7 @@ title: Artin Ghobadi — Portfolio
 
 <section class="hero">
   <div>
-    <h1>Hi! I'm Arash Ghobadi</h1>
+    <h1>Hi! I'm Artin Ghobadi</h1>
     <p>Electrical Engineering @ UBC · Bouldering & Mountaineering Enthusiast. This is where I document my engineering builds, climb analyses, and mountain projects.</p>
     <div class="badges">
       <span class="badge">Circuits & Embedded</span>
