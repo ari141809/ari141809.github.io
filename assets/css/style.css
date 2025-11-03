@@ -52,6 +52,17 @@ h1, h2 { letter-spacing: 0.3px; }
   border: 1px solid #1d2236;
   border-radius: 12px;
 }
+.toc-card,
+.card {
+  background: var(--panel);
+  border-color: #504945;
+}
+.card:hover {
+  border-color: var(--accent);
+}
+a:hover {
+  color: var(--accent2);
+}
 .toc-title { font-weight: 700; margin-bottom: 0.5rem; color: var(--muted); }
 #toc { font-size: 0.95rem; line-height: 1.35; }
 #toc a { color: var(--muted); text-decoration: none; }
