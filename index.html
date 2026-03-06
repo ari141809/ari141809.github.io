@@ -873,15 +873,29 @@ footer {
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
   function toggleTheme() {
     const html = document.documentElement;
     html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', html.dataset.theme);
   }
-
-  // Respect saved preference
   const saved = localStorage.getItem('theme');
-  if (saved) {
-    document.documentElement.dataset.theme = saved;
-  } else i
+  if (saved) document.documentElement.dataset.theme = saved;
+  else if (window.matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = 'dark';
+
+  function filterProjects(status) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+
+    document.querySelectorAll('.status-group').forEach(group => {
+      if (status === 'all') {
+        group.style.display = '';
+      } else {
+        group.style.display = group.dataset.group === status ? '' : 'none';
+      }
+    });
+  }
+</script>
+</body>
+</html>
