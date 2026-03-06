@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arduino Sensor Data Logger — Artin Ghobadi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────
+   TOKENS (identical to homepage)
+───────────────────────────────────────── */
+:root {
+  --bg:          #f5f0e8;
+  --bg-2:        #ede8dc;
+  --bg-3:        #e4ddd0;
+  --surface:     #faf7f2;
+  --border:      #d4c9b4;
+  --border-2:    #c4b89e;
+  --text:        #2c2416;
+  --text-2:      #5a4e38;
+  --text-3:      #8a7a60;
+  --accent:      #b8720e;
+  --accent-warm: #c47a1e;
+  --accent-pale: #f0e4cc;
+  --code-bg:     #282520;
+  --code-text:   #e8dfc8;
+  --code-yellow: #d79921;
+  --code-orange: #d65d0e;
+  --code-blue:   #458588;
+  --code-green:  #98971a;
+  --green:       #79740e;
+
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --font-body:  'Lora', Georgia, serif;
+  --font-mono:  'DM Mono', 'Courier New', monospace;
+  --radius: 3px;
+  --transition: 0.22s ease;
+}
+
+[data-theme="dark"] {
+  --bg:          #1d1b16;
+  --bg-2:        #242118;
+  --bg-3:        #2c281e;
+  --surface:     #201e19;
+  --border:      #3a3428;
+  --border-2:    #4a4234;
+  --text:        #e8dfc8;
+  --text-2:      #b8aa90;
+  --text-3:      #7a6f58;
+  --accent:      #d4923a;
+  --accent-warm: #e0a040;
+  --accent-pale: #2e2618;
+  --code-bg:     #141210;
+  --code-text:   #e8dfc8;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.75;
+  transition: background var(--transition), color var(--transition);
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ─────────────────────────────────────────
+   HEADER
+───────────────────────────────────────── */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(24px, 5vw, 72px);
+  height: 58px;
+  transition: background var(--transition), border-color var(--transition);
+}
+.site-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: clamp(24px, 5vw, 72px);
+  width: 48px;
+  height: 2px;
+  background: var(--accent);
+}
+.site-logo {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  text-decoration: none;
+}
+.site-logo:hover { color: var(--text); text-decoration: none; }
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.site-nav a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.site-nav a:hover { color: var(--text); text-decoration: none; }
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 34px;
+  height: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-3);
+  font-size: 13px;
+  transition: border-color var(--transition), color var(--transition);
+  padding: 0;
+  margin-left: 8px;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.theme-toggle .icon-moon { display: block; }
+.theme-toggle .icon-sun  { display: none; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+[data-theme="dark"] .theme-toggle .icon-sun  { display: block; }
+
+/* ─────────────────────────────────────────
+   PAGE LAYOUT
+───────────────────────────────────────── */
+.page-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 72px);
+}
+
+/* ─────────────────────────────────────────
+   PROJECT HEADER
+───────────────────────────────────────── */
+.project-header {
+  padding: clamp(48px, 7vw, 88px) 0 clamp(36px, 5vw, 56px);
+  border-bottom: 1px solid var(--border);
+}
+
+.breadcrumb {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.breadcrumb a { color: var(--text-3); text-decoration: none; }
+.breadcrumb a:hover { color: var(--accent); text-decoration: none; }
+.breadcrumb-sep { color: var(--border-2); }
+
+.project-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.project-title {
+  font-family: var(--font-serif);
+  font-size: clamp(36px, 5vw, 58px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.project-status-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 100px;
+  flex-shrink: 0;
+  margin-top: 8px;
+}
+.status-active  { background: var(--accent-pale); color: var(--accent); border: 1px solid var(--accent-warm); }
+.status-planned { background: var(--bg-3); color: var(--text-3); border: 1px solid var(--border); }
+.status-done    { background: var(--bg-2); color: var(--green); border: 1px solid var(--border); }
+
+.project-tagline {
+  font-size: 18px;
+  color: var(--text-2);
+  line-height: 1.6;
+  max-width: 680px;
+  margin-bottom: 28px;
+}
+
+.project-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.meta-item {
+  padding: 10px 20px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-2);
+}
+.meta-item:last-child { border-right: none; }
+.meta-key {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 3px;
+}
+.meta-val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+}
+.meta-val a { color: var(--accent); font-family: var(--font-mono); font-size: 12px; }
+
+/* ─────────────────────────────────────────
+   CONTENT — single column
+───────────────────────────────────────── */
+.content-grid {
+  padding: clamp(40px, 5vw, 64px) 0;
+}
+
+/* ─────────────────────────────────────────
+   MAIN COLUMN
+───────────────────────────────────────── */
+.section-head {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.section-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Overview prose */
+.overview {
+  margin-bottom: 56px;
+}
+.overview p {
+  color: var(--text-2);
+  margin-bottom: 16px;
+  line-height: 1.85;
+}
+.overview p:last-child { margin-bottom: 0; }
+
+/* ─────────────────────────────────────────
+   BUILD LOG
+───────────────────────────────────────── */
+.build-log {
+  margin-bottom: 56px;
+}
+
+.log-entry {
+  display: grid;
+  grid-template-columns: 96px 28px 1fr;
+  gap: 0;
+  margin-bottom: 0;
+  position: relative;
+}
+
+/* Vertical timeline line — runs through the dot column */
+.log-entry::before {
+  content: '';
+  position: absolute;
+  left: calc(96px + 13px);
+  top: 28px;
+  bottom: -1px;
+  width: 1px;
+  background: var(--border);
+}
+.log-entry:last-child::before { display: none; }
+
+.log-date-col {
+  padding-top: 6px;
+  text-align: right;
+  padding-right: 0;
+}
+.log-date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+
+/* Dot column — dedicated column between date and body */
+.log-dot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 9px;
+  position: relative;
+  z-index: 1;
+}
+.log-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--border-2);
+  flex-shrink: 0;
+  transition: border-color var(--transition);
+}
+.log-entry:first-child .log-dot {
+  border-color: var(--accent);
+  background: var(--accent-pale);
+}
+
+.log-body-col {
+  padding-bottom: 40px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.log-title {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.log-entry:first-child .log-title {
+  color: var(--accent);
+}
+
+.log-body p {
+  font-size: 15px;
+  color: var(--text-2);
+  line-height: 1.8;
+  margin-bottom: 14px;
+}
+.log-body p:last-child { margin-bottom: 0; }
+
+/* Inline emphasis */
+.log-body strong { color: var(--text); font-weight: 500; }
+.log-body em { font-style: italic; color: var(--text-3); }
+
+/* Status flags inside log entries */
+.log-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+}
+.log-flag-problem  { background: #2e1008; color: #d65d0e; border: 1px solid #4a2010; }
+.log-flag-solved   { background: #1a2208; color: #98971a; border: 1px solid #2c3a10; }
+.log-flag-learning { background: var(--accent-pale); color: var(--accent); border: 1px solid var(--border-2); }
+
+[data-theme="dark"] .log-flag-problem  { background: #2e1008; }
+[data-theme="dark"] .log-flag-solved   { background: #1a2208; }
+
+/* Code block */
+.code-block {
+  background: var(--code-bg);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--code-text);
+  border: 1px solid #3a3428;
+  margin: 16px 0;
+}
+.c-comment { color: #665c54; font-style: italic; }
+.c-key     { color: var(--code-orange); }
+.c-str     { color: var(--code-yellow); }
+.c-fn      { color: var(--code-blue); }
+.c-num     { color: #d3869b; }
+.c-type    { color: var(--code-green); }
+
+/* Callout / note block */
+.callout {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-pale);
+  padding: 14px 18px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 16px 0;
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+.callout strong { color: var(--accent); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+
+/* ─────────────────────────────────────────
+   WHAT'S NEXT
+───────────────────────────────────────── */
+.next-steps {
+  margin-bottom: 56px;
+}
+
+.next-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.next-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 15px;
+  color: var(--text-2);
+  line-height: 1.5;
+  transition: background var(--transition);
+}
+.next-list li:hover { background: var(--bg-3); }
+.next-list li::before {
+  content: attr(data-n);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent);
+  flex-shrink: 0;
+  min-width: 20px;
+}
+
+/* ─────────────────────────────────────────
+   JUMP NAV (sticky, right side)
+───────────────────────────────────────── */
+.jump-nav {
+  position: fixed;
+  right: clamp(16px, 3vw, 40px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 40;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.jump-nav.visible { opacity: 1; }
+
+.jump-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  justify-content: flex-end;
+}
+.jump-link-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, color 0.18s ease;
+  white-space: nowrap;
+  background: var(--bg);
+  padding: 3px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.jump-link:hover .jump-link-label,
+.jump-link.active .jump-link-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+.jump-link.active .jump-link-label {
+  color: var(--accent);
+  border-color: var(--accent-warm);
+}
+.jump-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-2);
+  flex-shrink: 0;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+.jump-link:hover .jump-pip { background: var(--text-3); transform: scale(1.3); }
+.jump-link.active .jump-pip { background: var(--accent); transform: scale(1.4); }
+
+/* ─────────────────────────────────────────
+   STACK TAGS (in project header)
+───────────────────────────────────────── */
+.stack-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.stack-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: var(--bg-2);
+  transition: border-color var(--transition), color var(--transition);
+}
+.stack-tag:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ─────────────────────────────────────────
+   RESOURCES (bottom of page)
+───────────────────────────────────────── */
+.resources-section {
+  margin-bottom: 56px;
+}
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.resource-card {
+  background: var(--bg);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: background var(--transition);
+  text-decoration: none;
+}
+.resource-card:hover { background: var(--bg-2); text-decoration: none; }
+.resource-title {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.4;
+  transition: color var(--transition);
+}
+.resource-card:hover .resource-title { color: var(--accent); }
+.resource-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.resource-type {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.resource-source {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--border-2);
+}
+.resource-source::before { content: '·'; margin-right: 8px; }
+
+/* ─────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────── */
+.page-footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-back {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--transition);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.footer-back:hover { color: var(--accent); text-decoration: none; }
+.footer-back::before { content: '←'; transition: transform var(--transition); }
+.footer-back:hover::before { transform: translateX(-3px); }
+.footer-right {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media (max-width: 680px) {
+  .project-meta { flex-direction: column; width: 100%; }
+  .meta-item { border-right: none; border-bottom: 1px solid var(--border); }
+  .meta-item:last-child { border-bottom: none; }
+  .jump-nav { display: none; }
+  .resources-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --bg: #1d1b16; --bg-2: #242118; --bg-3: #2c281e;
+    --border: #3a3428; --border-2: #4a4234;
+    --text: #e8dfc8; --text-2: #b8aa90; --text-3: #7a6f58;
+    --accent: #d4923a; --accent-warm: #e0a040; --accent-pale: #2e2618;
+    --code-bg: #141210;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <a href="/" class="site-logo">artin.ghobadi</a>
+  <nav class="site-nav">
+    <a href="/#projects">Projects</a>
+    <a href="/#writing">Writing</a>
+    <a href="/resume.pdf">Resume</a>
+    <a href="https://github.com/ari141809" target="_blank">GitHub</a>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+      <span class="icon-moon">☽</span>
+      <span class="icon-sun">☀</span>
+    </button>
+  </nav>
+</header>
+
+<div class="page-wrap">
+
+  <!-- ── PROJECT HEADER ── -->
+  <div class="project-header">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="/#projects">Projects</a>
+      <span class="breadcrumb-sep">/</span>
+      Arduino Sensor Data Logger
+    </div>
+
+    <div class="project-title-row">
+      <h1 class="project-title">Arduino Sensor<br>Data Logger</h1>
+      <span class="project-status-badge status-active">In Progress</span>
+    </div>
+
+    <p class="project-tagline">
+      Environmental monitoring with a multi-sensor array — temperature, humidity, pressure —
+      logging to SD card. Stepping stone toward a custom PCB.
+    </p>
+
+    <div class="stack-tags">
+      <span class="stack-tag">Arduino Uno</span>
+      <span class="stack-tag">C++</span>
+      <span class="stack-tag">I²C</span>
+      <span class="stack-tag">BME280</span>
+      <span class="stack-tag">SD Card</span>
+      <span class="stack-tag">Python</span>
+    </div>
+
+    <div class="project-meta">
+      <div class="meta-item">
+        <div class="meta-key">Started</div>
+        <div class="meta-val">Feb 2026</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-key">Last Entry</div>
+        <div class="meta-val">Mar 5, 2026</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-key">Repository</div>
+        <div class="meta-val"><a href="https://github.com/ari141809" target="_blank">GitHub →</a></div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-key">Log Entries</div>
+        <div class="meta-val">3</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAIN CONTENT ── -->
+  <div class="content-grid">
+    <main>
+
+      <!-- Overview -->
+      <section class="overview" id="overview">
+        <div class="section-head">Overview</div>
+        <p>
+          I want to build something real with a microcontroller before I jump into custom PCB design.
+          The goal here is simple: read temperature, humidity, and barometric pressure from a sensor
+          array over I²C, and log the data to an SD card with timestamps. Nothing fancy — but it forces
+          me to actually deal with hardware communication protocols, power issues, and file systems, which
+          is exactly the kind of friction I need right now.
+        </p>
+        <p>
+          The longer-term goal is to take everything I learn here — pin assignments, power regulation,
+          decoupling, sensor wiring — and design a proper PCB that does the same job without the
+          breadboard mess. This project is the research phase for that one.
+        </p>
+      </section>
+
+      <!-- Build Log -->
+      <section class="build-log" id="build-log">
+        <div class="section-head">Build Log</div>
+
+        <!-- Entry 1 — most recent -->
+        <div class="log-entry">
+          <div class="log-date-col">
+            <div class="log-date">Mar 5<br>2026</div>
+          </div>
+          <div class="log-dot-col"><span class="log-dot"></span></div>
+          <div class="log-body-col">
+            <div class="log-title">Noisy ADC readings — tracking down the cause</div>
+            <div class="log-body">
+              <div class="log-flag log-flag-problem">⚠ Problem</div>
+              <p>
+                The BME280 over I²C is reading fine — temperature and humidity look stable.
+                But I added an analog soil moisture sensor on A0 and the readings are jumping
+                around by ±80 counts even when the probe is sitting in air. That's way too
+                much variance to be useful.
+              </p>
+              <p>
+                My first guess was RF interference from the USB cable. I tried shielding it —
+                no difference. Then I noticed the 3.3V rail on my breadboard is sagging to
+                about 3.1V under load, which could be affecting the ADC reference voltage.
+                Still investigating. Added a 100µF cap across the power rails as a test.
+              </p>
+              <div class="callout">
+                <strong>Note to self</strong>
+                Look into AREF pin — if I connect an external 3.3V reference directly, the ADC
+                should stop being affected by rail sag. Read the datasheet section on ADC noise
+                reduction before trying anything else.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entry 2 -->
+        <div class="log-entry">
+          <div class="log-date-col">
+            <div class="log-date">Feb 24<br>2026</div>
+          </div>
+          <div class="log-dot-col"><span class="log-dot"></span></div>
+          <div class="log-body-col">
+            <div class="log-title">I²C working, SD card writing, first real data</div>
+            <div class="log-body">
+              <div class="log-flag log-flag-solved">✓ Milestone</div>
+              <p>
+                Got the full pipeline working end-to-end. BME280 is talking over I²C at address
+                0x76, and every 5 seconds the Arduino writes a CSV row to the SD card:
+                timestamp, temperature, humidity, pressure. Pulled the card out and opened it
+                in a spreadsheet — actual data. Felt good.
+              </p>
+              <div class="code-block"><span class="c-comment">// Log format on SD card</span>
+<span class="c-type">unsigned long</span> ts = millis();
+<span class="c-fn">sprintf</span>(buf, <span class="c-str">"%lu,%.2f,%.2f,%.2f\n"</span>,
+        ts, bme.<span class="c-fn">readTemperature</span>(),
+        bme.<span class="c-fn">readHumidity</span>(),
+        bme.<span class="c-fn">readPressure</span>() / <span class="c-num">100.0F</span>);
+logFile.<span class="c-fn">print</span>(buf);</div>
+              <p>
+                One issue: if the SD card isn't inserted on boot, the sketch hangs.
+                I need to add a retry loop with a timeout instead of just
+                <code style="font-family:var(--font-mono);font-size:12px;background:var(--bg-3);padding:2px 6px;border-radius:2px;">while(!SD.begin())</code>.
+                Not critical but annoying.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Entry 3 -->
+        <div class="log-entry">
+          <div class="log-date-col">
+            <div class="log-date">Feb 18<br>2026</div>
+          </div>
+          <div class="log-dot-col"><span class="log-dot"></span></div>
+          <div class="log-body-col">
+            <div class="log-title">First I²C scan — figuring out addresses</div>
+            <div class="log-body">
+              <div class="log-flag log-flag-learning">↗ Learning</div>
+              <p>
+                Before writing any sensor code I ran the standard I²C scanner sketch to see
+                what addresses show up on the bus. The BME280 showed up at 0x76. Good — that's
+                the default with SDO pulled low.
+              </p>
+              <p>
+                Spent longer than I'd like to admit trying to figure out why my SDA/SCL pull-up
+                resistors weren't needed — turns out the Arduino Uno's Wire library enables
+                the internal pull-ups automatically. I had 4.7kΩ resistors wired in and everything
+                still worked, but now I understand why the datasheet specifies external ones for
+                longer cable runs or higher bus speeds.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- What's Next -->
+      <section class="next-steps" id="whats-next">
+        <div class="section-head">What's Next</div>
+        <ol class="next-list">
+          <li data-n="01">Investigate AREF pin for cleaner analog readings — try external 3.3V reference</li>
+          <li data-n="02">Add retry logic on SD card init so the sketch doesn't hang on missing card</li>
+          <li data-n="03">Add a second sensor (either CO₂ or light level) to stress-test multi-device I²C</li>
+          <li data-n="04">Write a simple Python script to plot the logged CSV data</li>
+        </ol>
+      </section>
+
+      <!-- Resources -->
+      <section class="resources-section" id="resources">
+        <div class="section-head">Resources</div>
+        <div class="resources-grid">
+          <a class="resource-card" href="https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf" target="_blank">
+            <span class="resource-title">BME280 Datasheet</span>
+            <div class="resource-meta">
+              <span class="resource-type">Datasheet</span>
+              <span class="resource-source">Bosch Sensortec</span>
+            </div>
+          </a>
+          <a class="resource-card" href="https://www.arduino.cc/reference/en/libraries/sd/" target="_blank">
+            <span class="resource-title">Arduino SD Library Reference</span>
+            <div class="resource-meta">
+              <span class="resource-type">Docs</span>
+              <span class="resource-source">Arduino</span>
+            </div>
+          </a>
+          <a class="resource-card" href="https://playground.arduino.cc/Main/I2cScanner/" target="_blank">
+            <span class="resource-title">I²C Scanner Sketch</span>
+            <div class="resource-meta">
+              <span class="resource-type">Reference</span>
+              <span class="resource-source">Arduino Playground</span>
+            </div>
+          </a>
+          <a class="resource-card" href="#" target="_blank">
+            <span class="resource-title">ATmega328P Datasheet — ADC section</span>
+            <div class="resource-meta">
+              <span class="resource-type">Datasheet</span>
+              <span class="resource-source">Microchip</span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <footer class="page-footer">
+    <a class="footer-back" href="/#projects">All Projects</a>
+    <span class="footer-right">Last updated Mar 5, 2026</span>
+  </footer>
+
+</div><!-- /page-wrap -->
+
+
+<!-- ── JUMP NAV ── -->
+<nav class="jump-nav" id="jumpNav" aria-label="Page sections">
+  <a class="jump-link" href="#overview">
+    <span class="jump-link-label">Overview</span>
+    <span class="jump-pip"></span>
+  </a>
+  <a class="jump-link" href="#build-log">
+    <span class="jump-link-label">Build Log</span>
+    <span class="jump-pip"></span>
+  </a>
+  <a class="jump-link" href="#whats-next">
+    <span class="jump-link-label">What's Next</span>
+    <span class="jump-pip"></span>
+  </a>
+  <a class="jump-link" href="#resources">
+    <span class="jump-link-label">Resources</span>
+    <span class="jump-pip"></span>
+  </a>
+</nav>
+
+<script>
+  // Theme toggle
+  function toggleTheme() {
+    const html = document.documentElement;
+    html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', html.dataset.theme);
+  }
+  const saved = localStorage.getItem('theme');
+  if (saved) {
+    document.documentElement.dataset.theme = saved;
+  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.dataset.theme = 'dark';
+  }
+
+  // Jump nav — show after scrolling past hero, highlight active section
+  const jumpNav = document.getElementById('jumpNav');
+  const sections = ['overview', 'build-log', 'whats-next', 'resources'];
+  const jumpLinks = jumpNav.querySelectorAll('.jump-link');
+
+  function updateJumpNav() {
+    const scrollY = window.scrollY;
+    // Show nav after 200px
+    jumpNav.classList.toggle('visible', scrollY > 200);
+
+    // Find active section
+    let active = sections[0];
+    for (const id of sections) {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top <= 120) active = id;
+    }
+    jumpLinks.forEach(link => {
+      const href = link.getAttribute('href').slice(1);
+      link.classList.toggle('active', href === active);
+    });
+  }
+
+  window.addEventListener('scroll', updateJumpNav, { passive: true });
+  updateJumpNav();
+</script>
+</body>
+</html>

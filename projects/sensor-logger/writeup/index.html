@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arduino Sensor Data Logger — Write-up · Artin Ghobadi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────── */
+:root {
+  --bg:          #f5f0e8;
+  --bg-2:        #ede8dc;
+  --bg-3:        #e4ddd0;
+  --border:      #d4c9b4;
+  --border-2:    #c4b89e;
+  --text:        #2c2416;
+  --text-2:      #5a4e38;
+  --text-3:      #8a7a60;
+  --accent:      #b8720e;
+  --accent-warm: #c47a1e;
+  --accent-pale: #f0e4cc;
+  --code-bg:     #282520;
+  --code-text:   #e8dfc8;
+  --code-yellow: #d79921;
+  --code-orange: #d65d0e;
+  --code-blue:   #458588;
+  --code-green:  #98971a;
+  --green:       #79740e;
+
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --font-body:  'Lora', Georgia, serif;
+  --font-mono:  'DM Mono', 'Courier New', monospace;
+  --radius: 3px;
+  --transition: 0.22s ease;
+
+  /* Write-up specific — narrower reading column */
+}
+
+[data-theme="dark"] {
+  --bg:          #1d1b16;
+  --bg-2:        #242118;
+  --bg-3:        #2c281e;
+  --border:      #3a3428;
+  --border-2:    #4a4234;
+  --text:        #e8dfc8;
+  --text-2:      #b8aa90;
+  --text-3:      #7a6f58;
+  --accent:      #d4923a;
+  --accent-warm: #e0a040;
+  --accent-pale: #2e2618;
+  --code-bg:     #141210;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.8;
+  transition: background var(--transition), color var(--transition);
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ─────────────────────────────────────────
+   PAGE LOAD
+───────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal { opacity: 0; animation: fadeUp 0.5s ease forwards; }
+.r1 { animation-delay: 0.05s; }
+.r2 { animation-delay: 0.15s; }
+.r3 { animation-delay: 0.25s; }
+.r4 { animation-delay: 0.38s; }
+
+/* ─────────────────────────────────────────
+   HEADER
+───────────────────────────────────────── */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(24px, 5vw, 72px);
+  height: 58px;
+  transition: background var(--transition), border-color var(--transition);
+}
+.site-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: clamp(24px, 5vw, 72px);
+  width: 48px;
+  height: 2px;
+  background: var(--accent);
+}
+.site-logo {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  text-decoration: none;
+}
+.site-logo:hover { color: var(--text); text-decoration: none; }
+.site-nav { display: flex; align-items: center; gap: 28px; }
+.site-nav a {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.site-nav a:hover { color: var(--text); text-decoration: none; }
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 34px; height: 26px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3);
+  font-size: 13px;
+  transition: border-color var(--transition), color var(--transition);
+  padding: 0; margin-left: 8px;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.theme-toggle .icon-moon { display: block; }
+.theme-toggle .icon-sun  { display: none; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+[data-theme="dark"] .theme-toggle .icon-sun  { display: block; }
+
+/* ─────────────────────────────────────────
+   LAYOUT — two-column with TOC
+───────────────────────────────────────── */
+.page-outer {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 72px);
+}
+
+/* Full-width hero band */
+.writeup-hero {
+  padding: clamp(56px, 8vw, 96px) 0 clamp(40px, 5vw, 64px);
+  border-bottom: 1px solid var(--border);
+}
+
+.breadcrumb {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.breadcrumb a { color: var(--text-3); text-decoration: none; }
+.breadcrumb a:hover { color: var(--accent); }
+.breadcrumb-sep { color: var(--border-2); }
+
+.writeup-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.writeup-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+
+.writeup-title {
+  font-family: var(--font-serif);
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.writeup-abstract {
+  font-size: 17px;
+  line-height: 1.85;
+  color: var(--text-2);
+  max-width: 640px;
+  margin-bottom: 32px;
+  font-style: italic;
+  border-left: 3px solid var(--border-2);
+  padding-left: 20px;
+}
+
+.writeup-meta {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.meta-pair { display: flex; flex-direction: column; gap: 3px; }
+.meta-pair .key {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.meta-pair .val {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+}
+.meta-pair .val a { color: var(--accent); font-family: var(--font-mono); font-size: 12px; }
+
+/* Build log link badge */
+.log-link-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  color: var(--text-3);
+  text-decoration: none;
+  margin-top: 28px;
+  transition: border-color var(--transition), color var(--transition);
+  background: var(--bg-2);
+}
+.log-link-badge:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.log-link-badge::before { content: '↗'; font-size: 11px; }
+
+/* ─────────────────────────────────────────
+   BODY LAYOUT — single prose column
+───────────────────────────────────────── */
+.writeup-body {
+  padding: clamp(48px, 6vw, 72px) 0;
+}
+
+/* ─────────────────────────────────────────
+   PROSE COLUMN
+───────────────────────────────────────── */
+.prose section {
+  margin-bottom: 64px;
+}
+.prose section:last-child { margin-bottom: 0; }
+
+.prose h2 {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-bottom: 20px;
+  line-height: 1.2;
+  padding-top: 8px;
+}
+
+.prose h3 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+  margin-top: 32px;
+}
+
+.prose p {
+  color: var(--text-2);
+  margin-bottom: 18px;
+  line-height: 1.85;
+}
+.prose p:last-child { margin-bottom: 0; }
+
+.prose strong { color: var(--text); font-weight: 600; }
+.prose em { font-style: italic; color: var(--text-3); }
+
+/* Section divider */
+.prose .section-rule {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin-bottom: 64px;
+}
+
+/* ── Figures ── */
+.figure {
+  margin: 32px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-2);
+}
+.figure-placeholder {
+  height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--bg-2),
+    var(--bg-2) 6px,
+    var(--bg-3) 6px,
+    var(--bg-3) 12px
+  );
+}
+.figure-placeholder-icon {
+  font-size: 28px;
+  opacity: 0.3;
+}
+.figure-placeholder-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.figure img {
+  width: 100%;
+  display: block;
+}
+.figure-caption {
+  padding: 10px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  border-top: 1px solid var(--border);
+  line-height: 1.5;
+}
+.figure-caption strong {
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+/* ── Schematic / diagram figure (wider treatment) ── */
+.figure-wide {
+  margin: 32px -32px;
+}
+
+/* ── Code block ── */
+.code-block {
+  background: var(--code-bg);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--code-text);
+  border: 1px solid #3a3428;
+  margin: 20px 0;
+}
+.code-block .code-label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #665c54;
+  margin-bottom: 12px;
+  display: block;
+  border-bottom: 1px solid #3a3428;
+  padding-bottom: 10px;
+}
+.c-comment { color: #665c54; font-style: italic; }
+.c-key     { color: var(--code-orange); }
+.c-str     { color: var(--code-yellow); }
+.c-fn      { color: var(--code-blue); }
+.c-num     { color: #d3869b; }
+.c-type    { color: var(--code-green); }
+
+/* ── Specs table ── */
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+}
+.specs-table th {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-align: left;
+  padding: 10px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  font-weight: 500;
+}
+.specs-table td {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.specs-table tr:nth-child(even) td { background: var(--bg-2); }
+.specs-table td:first-child {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* ── Callout ── */
+.callout {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-pale);
+  padding: 14px 20px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 24px 0;
+  font-size: 15px;
+  color: var(--text-2);
+  line-height: 1.7;
+}
+.callout strong {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* ── Result stats row ── */
+.result-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 24px 0;
+}
+.stat-cell {
+  background: var(--bg);
+  padding: 20px 24px;
+  text-align: center;
+}
+.stat-num {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  color: var(--accent);
+  line-height: 1;
+  display: block;
+  margin-bottom: 6px;
+}
+.stat-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ─────────────────────────────────────────
+   JUMP NAV (pip style, fixed right)
+───────────────────────────────────────── */
+.jump-nav {
+  position: fixed;
+  right: clamp(16px, 3vw, 40px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 40;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.jump-nav.visible { opacity: 1; }
+
+.jump-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  justify-content: flex-end;
+  cursor: pointer;
+}
+.jump-link-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, color 0.18s ease;
+  white-space: nowrap;
+  background: var(--bg);
+  padding: 3px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.jump-link:hover .jump-link-label,
+.jump-link.active .jump-link-label {
+  opacity: 1;
+  transform: translateX(0);
+}
+.jump-link.active .jump-link-label {
+  color: var(--accent);
+  border-color: var(--accent-warm);
+}
+.jump-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-2);
+  flex-shrink: 0;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+.jump-link:hover .jump-pip { background: var(--text-3); transform: scale(1.3); }
+.jump-link.active .jump-pip { background: var(--accent); transform: scale(1.4); }
+
+/* ─────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────── */
+.writeup-footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.footer-nav {
+  display: flex;
+  gap: 24px;
+}
+.footer-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.footer-link:hover { color: var(--accent); text-decoration: none; }
+.footer-link.back::before { content: '←'; transition: transform var(--transition); }
+.footer-link.back:hover::before { transform: translateX(-3px); }
+.footer-link.log::after { content: '→'; transition: transform var(--transition); }
+.footer-link.log:hover::after { transform: translateX(3px); }
+.footer-right {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media (max-width: 960px) {
+  .figure-wide { margin: 32px 0; }
+  .jump-nav { display: none; }
+}
+@media (max-width: 680px) {
+  .result-stats { grid-template-columns: 1fr; }
+  .writeup-meta { gap: 20px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    --bg: #1d1b16; --bg-2: #242118; --bg-3: #2c281e;
+    --border: #3a3428; --border-2: #4a4234;
+    --text: #e8dfc8; --text-2: #b8aa90; --text-3: #7a6f58;
+    --accent: #d4923a; --accent-warm: #e0a040; --accent-pale: #2e2618;
+    --code-bg: #141210;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <a href="/" class="site-logo">artin.ghobadi</a>
+  <nav class="site-nav">
+    <a href="/#projects">Projects</a>
+    <a href="/#writing">Writing</a>
+    <a href="/resume.pdf">Resume</a>
+    <a href="https://github.com/ari141809" target="_blank">GitHub</a>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+      <span class="icon-moon">☽</span>
+      <span class="icon-sun">☀</span>
+    </button>
+  </nav>
+</header>
+
+<div class="page-outer">
+
+  <!-- ── HERO ── -->
+  <div class="writeup-hero">
+    <div class="breadcrumb reveal r1">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="/#projects">Projects</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="/projects/sensor-logger/">Arduino Sensor Data Logger</a>
+      <span class="breadcrumb-sep">/</span>
+      Write-up
+    </div>
+
+    <div class="writeup-label reveal r1">Technical Write-up</div>
+
+    <h1 class="writeup-title reveal r2">Arduino Sensor<br>Data Logger</h1>
+
+    <p class="writeup-abstract reveal r3">
+      A multi-sensor environmental monitoring system built on the Arduino Uno,
+      logging temperature, humidity, and barometric pressure to SD card over I²C.
+      This write-up covers the hardware design decisions, firmware architecture,
+      ADC noise issues encountered, and what I'd do differently on the next revision.
+    </p>
+
+    <div class="writeup-meta reveal r4">
+      <div class="meta-pair">
+        <span class="key">Completed</span>
+        <span class="val">March 2026</span>
+      </div>
+      <div class="meta-pair">
+        <span class="key">Stack</span>
+        <span class="val">Arduino · C++ · Python</span>
+      </div>
+      <div class="meta-pair">
+        <span class="key">Repository</span>
+        <span class="val"><a href="https://github.com/ari141809" target="_blank">GitHub →</a></span>
+      </div>
+    </div>
+
+    <a class="log-link-badge reveal r4" href="/projects/sensor-logger/">
+      View full build log for this project
+    </a>
+  </div>
+
+  <!-- ── BODY ── -->
+  <div class="writeup-body">
+
+    <!-- PROSE -->
+    <article class="prose">
+
+      <!-- 1. Overview -->
+      <section id="s-overview">
+        <h2>Overview</h2>
+        <p>
+          This project started as a deliberate first step toward custom PCB design. Before
+          committing to KiCad and a fabricated board, I wanted to force myself to deal with
+          real hardware communication protocols, power supply constraints, and file system
+          management on a microcontroller — the kind of friction that breadboard prototyping
+          is good at surfacing.
+        </p>
+        <p>
+          The system reads temperature, humidity, and barometric pressure from a Bosch BME280
+          sensor over I²C, and writes timestamped CSV rows to a FAT-formatted SD card every
+          five seconds. The design is intentionally minimal: no display, no wireless, no RTOS.
+          Just sensors, storage, and a reliable main loop.
+        </p>
+
+        <div class="result-stats">
+          <div class="stat-cell">
+            <span class="stat-num">±0.3°C</span>
+            <span class="stat-label">Temp accuracy</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-num">5s</span>
+            <span class="stat-label">Sample interval</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-num">3</span>
+            <span class="stat-label">Sensors on I²C bus</span>
+          </div>
+        </div>
+      </section>
+
+      <hr class="section-rule">
+
+      <!-- 2. Hardware -->
+      <section id="s-hardware">
+        <h2>Hardware Design</h2>
+
+        <h3>Component Selection</h3>
+        <p>
+          The BME280 was chosen over the simpler DHT22 for two reasons: it communicates
+          over I²C rather than a custom single-wire protocol, making it representative of
+          the kind of sensor interface I'd encounter in real designs; and it adds barometric
+          pressure, which the DHT22 lacks entirely.
+        </p>
+
+        <table class="specs-table">
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Part</th>
+              <th>Interface</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>MCU</td>
+              <td>Arduino Uno R3</td>
+              <td>—</td>
+              <td>ATmega328P @ 16MHz</td>
+            </tr>
+            <tr>
+              <td>Env. sensor</td>
+              <td>BME280</td>
+              <td>I²C (0x76)</td>
+              <td>SDO pulled low</td>
+            </tr>
+            <tr>
+              <td>Storage</td>
+              <td>MicroSD module</td>
+              <td>SPI</td>
+              <td>FAT32 formatted</td>
+            </tr>
+            <tr>
+              <td>Moisture</td>
+              <td>Capacitive soil sensor</td>
+              <td>Analog (A0)</td>
+              <td>Source of ADC noise issue</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Wiring & Pull-ups</h3>
+        <p>
+          The Arduino Uno's Wire library enables internal pull-ups on SDA and SCL automatically,
+          which is sufficient for a short bus with a single device at standard mode (100 kHz).
+          I added external 4.7 kΩ resistors initially but found they made no measurable
+          difference at this bus speed and cable length. For future designs with multiple
+          I²C devices or longer runs, external pull-ups sized to the bus capacitance
+          will be necessary.
+        </p>
+
+        <div class="figure">
+          <div class="figure-placeholder">
+            <div class="figure-placeholder-icon">⚡</div>
+            <div class="figure-placeholder-label">Schematic — add your circuit diagram here</div>
+          </div>
+          <div class="figure-caption">
+            <strong>Fig. 1</strong> — Breadboard schematic showing BME280 I²C connections,
+            SD card SPI wiring, and analog moisture sensor on A0.
+          </div>
+        </div>
+
+        <h3>Power</h3>
+        <p>
+          The board runs on USB 5V with the BME280 and SD module on the Arduino's 3.3V
+          regulated rail. Under load the rail measured approximately 3.08V — a 0.22V sag
+          that turned out to be significant for the ADC (covered in the issues section).
+        </p>
+      </section>
+
+      <hr class="section-rule">
+
+      <!-- 3. Firmware -->
+      <section id="s-firmware">
+        <h2>Firmware Architecture</h2>
+
+        <h3>Main loop structure</h3>
+        <p>
+          The firmware follows a simple fixed-interval polling pattern. A non-blocking
+          <code style="font-family:var(--font-mono);font-size:13px;background:var(--bg-3);padding:2px 6px;border-radius:2px;">millis()</code>
+          timer fires the sensor read and SD write every 5000ms without blocking other
+          work. The main loop stays free for any future additions like a serial debug
+          output or a button input.
+        </p>
+
+        <div class="code-block">
+<span class="code-label">main loop — sensor_logger.ino</span><span class="c-type">unsigned long</span> lastLog = <span class="c-num">0</span>;
+<span class="c-key">const</span> <span class="c-type">unsigned long</span> INTERVAL = <span class="c-num">5000</span>;
+
+<span class="c-type">void</span> <span class="c-fn">loop</span>() {
+  <span class="c-key">if</span> (millis() - lastLog >= INTERVAL) {
+    lastLog = <span class="c-fn">millis</span>();
+    <span class="c-fn">logReading</span>();
+  }
+  <span class="c-comment">// room for other non-blocking work here</span>
+}
+
+<span class="c-type">void</span> <span class="c-fn">logReading</span>() {
+  File f = SD.<span class="c-fn">open</span>(<span class="c-str">"log.csv"</span>, FILE_WRITE);
+  <span class="c-key">if</span> (!f) { <span class="c-fn">handleSDError</span>(); <span class="c-key">return</span>; }
+
+  <span class="c-fn">sprintf</span>(buf, <span class="c-str">"%lu,%.2f,%.2f,%.2f\n"</span>,
+    <span class="c-fn">millis</span>(),
+    bme.<span class="c-fn">readTemperature</span>(),
+    bme.<span class="c-fn">readHumidity</span>(),
+    bme.<span class="c-fn">readPressure</span>() / <span class="c-num">100.0F</span>);
+
+  f.<span class="c-fn">print</span>(buf);
+  f.<span class="c-fn">close</span>();
+}</div>
+
+        <h3>SD card error handling</h3>
+        <p>
+          The initial version used <code style="font-family:var(--font-mono);font-size:13px;background:var(--bg-3);padding:2px 6px;border-radius:2px;">while(!SD.begin())</code>
+          which caused the sketch to hang indefinitely if the card was missing at boot.
+          The final version retries up to five times with a 500ms delay, then enters a
+          safe idle loop that blinks the built-in LED rather than blocking execution entirely.
+        </p>
+
+        <div class="callout">
+          <strong>Lesson learned</strong>
+          Never use a blocking <code style="font-family:var(--font-mono);font-size:12px;">while(!peripheral.begin())</code>
+          pattern in production firmware. Always pair init failures with a timeout,
+          a fallback state, and a visual indicator.
+        </div>
+      </section>
+
+      <hr class="section-rule">
+
+      <!-- 4. Issues -->
+      <section id="s-issues">
+        <h2>Issues & Solutions</h2>
+
+        <h3>ADC noise on analog inputs</h3>
+        <p>
+          The most significant problem was noisy analog readings from the capacitive moisture
+          sensor on A0. Raw ADC values varied by ±80 counts in a stable environment —
+          far too much for useful data. Investigation revealed two contributing factors.
+        </p>
+        <p>
+          First, the 3.3V rail was sagging under load, which shifts the ADC's effective
+          reference voltage. The ATmega328P's ADC uses VCC as its default reference, so
+          any ripple on the supply rail directly contaminates readings.
+          Second, the SD card module was causing SPI bus activity that coupled noise
+          into the analog circuitry.
+        </p>
+
+        <div class="figure">
+          <div class="figure-placeholder">
+            <div class="figure-placeholder-icon">📈</div>
+            <div class="figure-placeholder-label">Graph — raw vs filtered ADC readings over time</div>
+          </div>
+          <div class="figure-caption">
+            <strong>Fig. 2</strong> — Raw A0 readings before and after adding the 100µF
+            bulk capacitor across VCC/GND and connecting AREF to the 3.3V rail.
+          </div>
+        </div>
+
+        <p>
+          The fix had two parts: a 100µF electrolytic capacitor across the power rails to
+          dampen supply sag, and connecting the AREF pin to the 3.3V rail with a 100Ω
+          series resistor to give the ADC a stable, independent reference. This brought
+          variation down to ±6 counts — acceptable for this application.
+        </p>
+
+        <table class="specs-table">
+          <thead>
+            <tr><th>Condition</th><th>ADC variation (counts)</th><th>Equivalent voltage</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Before fix</td><td>±80</td><td>±390mV</td></tr>
+            <tr><td>After cap only</td><td>±22</td><td>±107mV</td></tr>
+            <tr><td>After cap + AREF</td><td>±6</td><td>±29mV</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <hr class="section-rule">
+
+      <!-- 5. Results -->
+      <section id="s-results">
+        <h2>Results</h2>
+        <p>
+          The completed system runs reliably over multi-hour sessions. The SD card log
+          produces clean CSV output that can be plotted directly with the included Python
+          script. A 24-hour overnight run captured 17,280 samples with no dropped entries
+          or filesystem errors.
+        </p>
+
+        <div class="figure">
+          <div class="figure-placeholder">
+            <div class="figure-placeholder-icon">🌡️</div>
+            <div class="figure-placeholder-label">Chart — 24h temperature & humidity log</div>
+          </div>
+          <div class="figure-caption">
+            <strong>Fig. 3</strong> — 24-hour temperature and humidity capture from
+            overnight run. The dip at ~03:00 corresponds to a window being opened.
+          </div>
+        </div>
+      </section>
+
+      <hr class="section-rule">
+
+      <!-- 6. Reflection -->
+      <section id="s-reflection">
+        <h2>What I'd Do Differently</h2>
+        <p>
+          The most important lesson was about power design. I treated the power supply
+          as an afterthought and paid for it with hours of debugging ADC noise. On the
+          next revision — the custom PCB — I'll add proper decoupling capacitors at every
+          IC, a dedicated 3.3V LDO with good rejection, and a dedicated analog power
+          plane separated from the digital circuitry.
+        </p>
+        <p>
+          I'd also move away from the Arduino SD library toward a more lightweight
+          implementation. The library opens and closes the file on every write, which
+          causes a noticeable 30–40ms stall each sample interval. A better approach is
+          to keep the file handle open and call <code style="font-family:var(--font-mono);font-size:13px;background:var(--bg-3);padding:2px 6px;border-radius:2px;">flush()</code>
+          periodically rather than close/reopen.
+        </p>
+        <p>
+          Finally, timestamping with <code style="font-family:var(--font-mono);font-size:13px;background:var(--bg-3);padding:2px 6px;border-radius:2px;">millis()</code>
+          is adequate for relative timing but produces logs that are hard to correlate
+          with real-world events. A DS3231 RTC module would give wall-clock timestamps
+          and is the obvious next addition.
+        </p>
+      </section>
+
+    </article>
+
+  </div><!-- /writeup-body -->
+
+  <!-- ── JUMP NAV ── -->
+  <nav class="jump-nav" id="jumpNav" aria-label="Page sections">
+    <a class="jump-link" href="#s-overview">
+      <span class="jump-link-label">01 · Overview</span>
+      <span class="jump-pip"></span>
+    </a>
+    <a class="jump-link" href="#s-hardware">
+      <span class="jump-link-label">02 · Hardware</span>
+      <span class="jump-pip"></span>
+    </a>
+    <a class="jump-link" href="#s-firmware">
+      <span class="jump-link-label">03 · Firmware</span>
+      <span class="jump-pip"></span>
+    </a>
+    <a class="jump-link" href="#s-issues">
+      <span class="jump-link-label">04 · Issues</span>
+      <span class="jump-pip"></span>
+    </a>
+    <a class="jump-link" href="#s-results">
+      <span class="jump-link-label">05 · Results</span>
+      <span class="jump-pip"></span>
+    </a>
+    <a class="jump-link" href="#s-reflection">
+      <span class="jump-link-label">06 · Reflection</span>
+      <span class="jump-pip"></span>
+    </a>
+  </nav>
+
+  <!-- ── FOOTER ── -->
+  <footer class="writeup-footer">
+    <nav class="footer-nav">
+      <a class="footer-link back" href="/#projects">All Projects</a>
+      <a class="footer-link log" href="/projects/sensor-logger/">Build Log</a>
+    </nav>
+    <span class="footer-right">Completed March 2026</span>
+  </footer>
+
+</div><!-- /page-outer -->
+
+<script>
+  // Theme
+  function toggleTheme() {
+    const html = document.documentElement;
+    html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', html.dataset.theme);
+  }
+  const saved = localStorage.getItem('theme');
+  if (saved) document.documentElement.dataset.theme = saved;
+  else if (window.matchMedia('(prefers-color-scheme: dark)').matches)
+    document.documentElement.dataset.theme = 'dark';
+
+  // Jump nav — show after scrolling past hero, highlight active section
+  const jumpNav = document.getElementById('jumpNav');
+  const sections = ['s-overview','s-hardware','s-firmware','s-issues','s-results','s-reflection'];
+  const jumpLinks = jumpNav.querySelectorAll('.jump-link');
+
+  function updateJumpNav() {
+    jumpNav.classList.toggle('visible', window.scrollY > 200);
+    let active = sections[0];
+    for (const id of sections) {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top <= 120) active = id;
+    }
+    jumpLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + active);
+    });
+  }
+
+  window.addEventListener('scroll', updateJumpNav, { passive: true });
+  updateJumpNav();
+</script>
+</body>
+</html>
