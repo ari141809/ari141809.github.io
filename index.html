@@ -421,6 +421,29 @@ body::before {
   padding: 2px 8px;
   border-radius: var(--radius);
 }
+/* Card footer links (build log / write-up) */
+.project-card-links {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.project-card-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-decoration: none;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color var(--transition), color var(--transition);
+}
+.project-card-link:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.project-card-link.primary { color: var(--accent); border-color: var(--accent-warm); background: var(--accent-pale); }
+.project-card-link.primary:hover { background: var(--accent); color: var(--bg); }
 
 /* ─────────────────────────────────────────
    WRITING / LOG LIST
@@ -643,7 +666,7 @@ footer {
   <div class="section-label">Active Projects</div>
   <div class="project-grid">
 
-    <a class="project-card" href="/projects/sensor-logger/index.html">
+    <div class="project-card">
       <div class="project-card-top">
         <span class="project-num">01</span>
         <span class="project-status status-active">In Progress</span>
@@ -662,7 +685,11 @@ footer {
         <span class="project-card-tag">I²C</span>
         <span class="project-card-tag">SD Card</span>
       </div>
-    </a>
+      <div class="project-card-links">
+        <a class="project-card-link primary" href="/projects/sensor-logger/" target="_blank">Build Log</a>
+        <a class="project-card-link" href="/projects/sensor-logger/writeup/" target="_blank">Write-up</a>
+      </div>
+    </div>
 
     <a class="project-card" href="#">
       <div class="project-card-top">
