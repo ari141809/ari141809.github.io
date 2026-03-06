@@ -884,6 +884,24 @@ footer {
   else if (window.matchMedia('(prefers-color-scheme: dark)').matches)
     document.documentElement.dataset.theme = 'dark';
 
+  // Jump nav visibility + active section tracking
+  const jumpNav = document.getElementById('jumpNav');
+  const sections = ['projects', 'writing', 'about'].map(id => document.getElementById(id));
+  const jumpLinks = document.querySelectorAll('.jump-link');
+
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY > 100;
+    jumpNav.classList.toggle('visible', scrolled);
+
+    let current = '';
+    sections.forEach(sec => {
+      if (sec && window.scrollY >= sec.offsetTop - 120) current = sec.id;
+    });
+    jumpLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+  });
+
   function filterProjects(status) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     event.target.classList.add('active');
