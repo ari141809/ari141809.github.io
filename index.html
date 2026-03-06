@@ -799,4 +799,6 @@ footer {
   const saved = localStorage.getItem('theme');
   if (saved) {
     document.documentElement.dataset.theme = saved;
-  } else 
+  } else if (window.matchMedia('(prefers-color-scheme:dark)').matches) {
+    document.documentElement.dataset.theme = 'dark';
+  }
