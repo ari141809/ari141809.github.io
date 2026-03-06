@@ -331,6 +331,83 @@ body::before {
   background: var(--border);
 }
 
+/* Section header row with "View all" link */
+.section-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36px;
+}
+.section-label-row .section-label {
+  margin-bottom: 0;
+  flex: 1;
+}
+.section-view-all {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-decoration: none;
+  transition: color var(--transition);
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+.section-view-all:hover { color: var(--accent); text-decoration: none; }
+
+/* ─────────────────────────────────────────
+   JUMP NAV
+───────────────────────────────────────── */
+.jump-nav {
+  position: fixed;
+  right: clamp(16px, 3vw, 40px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 40;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.jump-nav.visible { opacity: 1; }
+.jump-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  justify-content: flex-end;
+  cursor: pointer;
+}
+.jump-link-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.18s ease, transform 0.18s ease, color 0.18s ease;
+  white-space: nowrap;
+  background: var(--bg);
+  padding: 3px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.jump-link:hover .jump-link-label,
+.jump-link.active .jump-link-label { opacity: 1; transform: translateX(0); }
+.jump-link.active .jump-link-label { color: var(--accent); border-color: var(--accent-warm); }
+.jump-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-2);
+  flex-shrink: 0;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+.jump-link:hover .jump-pip { background: var(--text-3); transform: scale(1.3); }
+.jump-link.active .jump-pip { background: var(--accent); transform: scale(1.4); }
+
 /* ─────────────────────────────────────────
    PROJECT GRID
 ───────────────────────────────────────── */
@@ -601,6 +678,7 @@ footer {
   .entry-arrow { display: none; }
   .about-facts { grid-template-columns: 1fr 1fr; }
   footer { flex-direction: column; gap: 20px; align-items: flex-start; }
+  .jump-nav { display: none; }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -628,8 +706,8 @@ footer {
 <header class="site-header">
   <a href="/" class="site-logo">artin.ghobadi</a>
   <nav class="site-nav">
-    <a href="#projects">Projects</a>
-    <a href="#writing">Writing</a>
+    <a href="/projects/">Projects</a>
+    <a href="/writing/">Writing</a>
     <a href="/resume.pdf" target="_blank">Resume</a>
     <a href="https://github.com/ari141809" target="_blank">GitHub</a>
     <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
@@ -653,7 +731,7 @@ footer {
       I document the process honestly — what broke, what I learned, and what's next.
     </p>
     <div class="hero-links reveal reveal-4">
-      <a class="hero-link-primary" href="#projects">View Projects</a>
+      <a class="hero-link-primary" href="/projects/">View Projects</a>
       <a class="hero-link-ghost" href="/resume.pdf">Download Resume</a>
     </div>
   </div>
@@ -663,7 +741,10 @@ footer {
 <!-- ── PROJECTS ── -->
 <div class="section-outer" id="projects">
 <div class="section reveal reveal-6">
-  <div class="section-label">Active Projects</div>
+  <div class="section-label-row">
+    <div class="section-label">Recent Projects</div>
+    <a class="section-view-all" href="/projects/">View all →</a>
+  </div>
   <div class="project-grid">
 
     <div class="project-card">
@@ -691,43 +772,6 @@ footer {
       </div>
     </div>
 
-    <a class="project-card" href="#">
-      <div class="project-card-top">
-        <span class="project-num">02</span>
-        <span class="project-status status-planned">Planned</span>
-      </div>
-      <h3>Custom PCB Design</h3>
-      <p class="project-desc">
-        Step up from the Arduino prototype — design a proper PCB in KiCad with a dedicated
-        microcontroller, power regulation, and onboard sensors.
-      </p>
-      <div class="project-latest">
-        Waiting until the sensor logger is stable. Reading up on KiCad in the meantime.
-      </div>
-      <div class="project-tags">
-        <span class="project-card-tag">KiCad</span>
-        <span class="project-card-tag">Hardware</span>
-        <span class="project-card-tag">PCB</span>
-      </div>
-    </a>
-
-    <a class="project-card" href="#">
-      <div class="project-card-top">
-        <span class="project-num">03</span>
-        <span class="project-status status-planned">Planned</span>
-      </div>
-      <h3>More Coming</h3>
-      <p class="project-desc">
-        Building in public. New projects will appear here as they start — not when they finish.
-      </p>
-      <div class="project-latest">
-        Watch this space.
-      </div>
-      <div class="project-tags">
-        <span class="project-card-tag">TBD</span>
-      </div>
-    </a>
-
   </div>
 </div>
 </div>
@@ -735,7 +779,10 @@ footer {
 <!-- ── WRITING ── -->
 <div class="section-outer" id="writing">
 <div class="section">
-  <div class="section-label">Writing</div>
+  <div class="section-label-row">
+    <div class="section-label">Recent Writing</div>
+    <a class="section-view-all" href="/writing/">View all →</a>
+  </div>
   <div class="writing-list">
 
     <a class="writing-entry" href="#">
@@ -747,12 +794,6 @@ footer {
     <a class="writing-entry" href="#">
       <span class="entry-date">Feb 2026</span>
       <span class="entry-title">Getting started with I²C on Arduino without the magic functions</span>
-      <span class="entry-arrow">→</span>
-    </a>
-
-    <a class="writing-entry" href="#">
-      <span class="entry-date">Coming</span>
-      <span class="entry-title">More posts will appear here as I work through problems</span>
       <span class="entry-arrow">→</span>
     </a>
 
@@ -803,6 +844,23 @@ footer {
   </div>
 </div>
 </div>
+
+<!-- ── JUMP NAV ── -->
+<nav class="jump-nav" id="jumpNav" aria-label="Page sections">
+  <a class="jump-link" href="#projects">
+    <span class="jump-link-label">Projects</span>
+    <span class="jump-pip"></span>
+  </a>
+  <a class="jump-link" href="#writing">
+    <span class="jump-link-label">Writing</span>
+    <span class="jump-pip"></span>
+  </a>
+  <a class="jump-link" href="#about">
+    <span class="jump-link-label">About</span>
+    <span class="jump-pip"></span>
+  </a>
+</nav>
+
 </main>
 
 <!-- ── FOOTER ── -->
@@ -811,11 +869,11 @@ footer {
   <div class="footer-links">
     <a href="https://github.com/ari141809" target="_blank" rel="noopener noreferrer">GitHub</a>
     <a href="https://linkedin.com/in/artin-ghobadi-2b0788162/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-    <a href="mailto:ari078506@gmail.com" target="_blank" rel="noopener noreferrer">Email</a>
+    <a href="/cdn-cgi/l/email-protection#1273607b22252a27222452757f737b7e3c717d7f" target="_blank" rel="noopener noreferrer">Email</a>
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   function toggleTheme() {
     const html = document.documentElement;
     html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -826,9 +884,4 @@ footer {
   const saved = localStorage.getItem('theme');
   if (saved) {
     document.documentElement.dataset.theme = saved;
-  } else if (window.matchMedia('(prefers-color-scheme:dark)').matches) {
-    document.documentElement.dataset.theme = 'dark';
-  }
-</script>
-</body>
-</html>
+  } else i
