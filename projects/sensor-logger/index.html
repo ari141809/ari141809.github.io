@@ -300,78 +300,39 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 }
 
 .log-entry {
-  display: grid;
-  grid-template-columns: 96px 28px 1fr;
-  gap: 0;
   margin-bottom: 0;
-  position: relative;
+  padding-bottom: 40px;
 }
-
-/* Vertical timeline line — runs through the dot column */
-.log-entry::before {
-  content: '';
-  position: absolute;
-  left: calc(96px + 13px);
-  top: 28px;
-  bottom: -1px;
-  width: 1px;
+.log-entry-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.log-title {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+.log-entry:first-child .log-title {
+  color: var(--accent);
+}
+.log-entry-rule {
+  flex: 1;
+  height: 1px;
   background: var(--border);
-}
-.log-entry:last-child::before { display: none; }
-
-.log-date-col {
-  padding-top: 6px;
-  text-align: right;
-  padding-right: 0;
+  position: relative;
+  top: -2px;
 }
 .log-date {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.06em;
   color: var(--text-3);
-  line-height: 1.4;
-}
-
-/* Dot column — dedicated column between date and body */
-.log-dot-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 9px;
-  position: relative;
-  z-index: 1;
-}
-.log-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--bg);
-  border: 2px solid var(--border-2);
   flex-shrink: 0;
-  transition: border-color var(--transition);
-}
-.log-entry:first-child .log-dot {
-  border-color: var(--accent);
-  background: var(--accent-pale);
-}
-
-.log-body-col {
-  padding-bottom: 40px;
-  padding-left: 16px;
-  position: relative;
-}
-
-.log-title {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text);
-  margin-bottom: 12px;
-  line-height: 1.4;
-}
-
-.log-entry:first-child .log-title {
-  color: var(--accent);
 }
 
 .log-body p {
@@ -761,13 +722,12 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
         <!-- Entry 1 — most recent -->
         <div class="log-entry">
-          <div class="log-date-col">
-            <div class="log-date">Mar 5<br>2026</div>
+          <div class="log-entry-header">
+            <span class="log-title">Noisy ADC readings — tracking down the cause</span>
+            <span class="log-entry-rule"></span>
+            <span class="log-date">Mar 5, 2026</span>
           </div>
-          <div class="log-dot-col"><span class="log-dot"></span></div>
-          <div class="log-body-col">
-            <div class="log-title">Noisy ADC readings — tracking down the cause</div>
-            <div class="log-body">
+          <div class="log-body">
               <div class="log-flag log-flag-problem">⚠ Problem</div>
               <p>
                 The BME280 over I²C is reading fine — temperature and humidity look stable.
@@ -787,19 +747,17 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
                 should stop being affected by rail sag. Read the datasheet section on ADC noise
                 reduction before trying anything else.
               </div>
-            </div>
           </div>
         </div>
 
         <!-- Entry 2 -->
         <div class="log-entry">
-          <div class="log-date-col">
-            <div class="log-date">Feb 24<br>2026</div>
+          <div class="log-entry-header">
+            <span class="log-title">I²C working, SD card writing, first real data</span>
+            <span class="log-entry-rule"></span>
+            <span class="log-date">Feb 24, 2026</span>
           </div>
-          <div class="log-dot-col"><span class="log-dot"></span></div>
-          <div class="log-body-col">
-            <div class="log-title">I²C working, SD card writing, first real data</div>
-            <div class="log-body">
+          <div class="log-body">
               <div class="log-flag log-flag-solved">✓ Milestone</div>
               <p>
                 Got the full pipeline working end-to-end. BME280 is talking over I²C at address
@@ -820,19 +778,17 @@ logFile.<span class="c-fn">print</span>(buf);</div>
                 <code style="font-family:var(--font-mono);font-size:12px;background:var(--bg-3);padding:2px 6px;border-radius:2px;">while(!SD.begin())</code>.
                 Not critical but annoying.
               </p>
-            </div>
           </div>
         </div>
 
         <!-- Entry 3 -->
         <div class="log-entry">
-          <div class="log-date-col">
-            <div class="log-date">Feb 18<br>2026</div>
+          <div class="log-entry-header">
+            <span class="log-title">First I²C scan — figuring out addresses</span>
+            <span class="log-entry-rule"></span>
+            <span class="log-date">Feb 18, 2026</span>
           </div>
-          <div class="log-dot-col"><span class="log-dot"></span></div>
-          <div class="log-body-col">
-            <div class="log-title">First I²C scan — figuring out addresses</div>
-            <div class="log-body">
+          <div class="log-body">
               <div class="log-flag log-flag-learning">↗ Learning</div>
               <p>
                 Before writing any sensor code I ran the standard I²C scanner sketch to see
@@ -846,7 +802,6 @@ logFile.<span class="c-fn">print</span>(buf);</div>
                 still worked, but now I understand why the datasheet specifies external ones for
                 longer cable runs or higher bus speeds.
               </p>
-            </div>
           </div>
         </div>
 
