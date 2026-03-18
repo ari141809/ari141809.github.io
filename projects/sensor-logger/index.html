@@ -367,24 +367,46 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
 [data-theme="dark"] .log-flag-solved   { background: #1a2208; }
 
 /* Code block */
-.code-block {
-  background: var(--code-bg);
+pre {
+  background: #282520;
+  color: #e8dfc8;
   border-radius: var(--radius);
   padding: 20px 22px;
-  overflow-x: auto;
-  font-family: var(--font-mono);
   font-size: 12.5px;
   line-height: 1.75;
-  color: var(--code-text);
+  overflow-x: auto;
   border: 1px solid #3a3428;
   margin: 16px 0;
 }
-.c-comment { color: #665c54; font-style: italic; }
-.c-key     { color: var(--code-orange); }
-.c-str     { color: var(--code-yellow); }
-.c-fn      { color: var(--code-blue); }
-.c-num     { color: #d3869b; }
-.c-type    { color: var(--code-green); }
+pre code {
+  background: transparent;
+  color: #e8dfc8;
+  font-size: inherit;
+}
+
+pre code .token.comment,
+pre code .token.prolog,
+pre code .token.block-comment { color: #665c54; font-style: italic; }
+
+pre code .token.keyword,
+pre code .token.operator { color: #d65d0e; }
+
+pre code .token.string { color: #d79921; }
+
+pre code .token.function { color: #458588; }
+
+pre code .token.number { color: #d3869b; }
+
+pre code .token.boolean,
+pre code .token.constant { color: #d3869b; }
+
+pre code .token.class-name,
+pre code .token.type { color: #98971a; }
+
+pre code .token.punctuation { color: #a89984; }
+
+pre code .token.plain,
+pre code .token { color: #e8dfc8; }
 
 /* Callout / note block */
 .callout {
@@ -649,44 +671,43 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
       <span class="breadcrumb-sep">/</span>
       <a href="/projects/">Projects</a>
       <span class="breadcrumb-sep">/</span>
-      Arduino Sensor Data Logger
+      ESP32 Environmental Monitor
     </div>
 
     <div class="project-title-row">
-      <h1 class="project-title">Arduino Sensor<br>Data Logger</h1>
+      <h1 class="project-title">ESP32 Environmental Monitor</h1>
       <span class="project-status-badge status-active">In Progress</span>
     </div>
 
     <p class="project-tagline">
-      Environmental monitoring with a multi-sensor array — temperature, humidity, pressure —
-      logging to SD card. Stepping stone toward a custom PCB.
+      Real-time temperature, humidity, and pressure monitoring with cloud logging.
     </p>
 
     <div class="stack-tags">
-      <span class="stack-tag">Arduino Uno</span>
-      <span class="stack-tag">C++</span>
+      <span class="stack-tag">ESP32</span>
+      <span class="stack-tag">Arduino</span>
       <span class="stack-tag">I²C</span>
       <span class="stack-tag">BME280</span>
-      <span class="stack-tag">SD Card</span>
-      <span class="stack-tag">Python</span>
+      <span class="stack-tag">IoT</span>
+      <span class="stack-tag">Hardware Prototyping</span>
     </div>
 
     <div class="project-meta">
       <div class="meta-item">
         <div class="meta-key">Started</div>
-        <div class="meta-val">Feb 2026</div>
+        <div class="meta-val">Mar 13, 2026</div>
       </div>
       <div class="meta-item">
         <div class="meta-key">Last Entry</div>
-        <div class="meta-val">Mar 5, 2026</div>
+        <div class="meta-val">Mar 14, 2026</div>
       </div>
       <div class="meta-item">
         <div class="meta-key">Repository</div>
-        <div class="meta-val"><a href="https://github.com/ari141809" target="_blank">GitHub →</a></div>
+        <div class="meta-val"><a href="https://github.com/ari141809/ESP32-Environmental-Monitor" target="_blank">GitHub →</a></div>
       </div>
       <div class="meta-item">
         <div class="meta-key">Log Entries</div>
-        <div class="meta-val">3</div>
+        <div class="meta-val">2</div>
       </div>
       <div class="meta-item">
         <div class="meta-key">Write-up</div>
@@ -703,16 +724,17 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
       <section class="overview" id="overview">
         <div class="section-head">Overview</div>
         <p>
-          I want to build something real with a microcontroller before I jump into custom PCB design.
-          The goal here is simple: read temperature, humidity, and barometric pressure from a sensor
-          array over I²C, and log the data to an SD card with timestamps. Nothing fancy — but it forces
-          me to actually deal with hardware communication protocols, power issues, and file systems, which
-          is exactly the kind of friction I need right now.
+          I want to build something real with microcontrollers to understand the fundamentals
+          of communications protocols, and gain experience with reading reading datasheets before
+          I commit to building a custom PCB. The goal for this project is simple: read temperature, humidity,
+          , and barometric pressure from a sensor over I2C. Of course, there are many places in which I can go
+          above and beyond what is required like storing the data locally, on a cloud server, using batteries instead of USB, etc. but for now,
+          we'll try to get the bare minimum working.
         </p>
         <p>
-          The longer-term goal is to take everything I learn here — pin assignments, power regulation,
-          decoupling, sensor wiring — and design a proper PCB that does the same job without the
-          breadboard mess. This project is the research phase for that one.
+          The longer-term goal is to take everything I learn here, and design a proper PCB that does the same
+          job without the breadboard mess. Once the PCB design is finished, I plan on designing a container for it in solidworks
+          and have it run as device I use on the day to day in my room. 
         </p>
       </section>
 
@@ -723,29 +745,27 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
         <!-- Entry 1 — most recent -->
         <div class="log-entry">
           <div class="log-entry-header">
-            <span class="log-title">Noisy ADC readings — tracking down the cause</span>
+            <span class="log-title">ESP32 Setup - Arduino IDE can't detect ESP32</span>
             <span class="log-entry-rule"></span>
-            <span class="log-date">Mar 5, 2026</span>
+            <span class="log-date">Mar 13, 2026</span>
           </div>
           <div class="log-body">
               <div class="log-flag log-flag-problem">⚠ Problem</div>
               <p>
-                The BME280 over I²C is reading fine — temperature and humidity look stable.
-                But I added an analog soil moisture sensor on A0 and the readings are jumping
-                around by ±80 counts even when the probe is sitting in air. That's way too
-                much variance to be useful.
+                Before even using the board, I first had to install some libraries in the Arduino IDE.
+                After doing so, I set the board to "ESP32 dev module" and tried to set the port but noticed
+                that the Port menu was greyed out.
               </p>
               <p>
-                My first guess was RF interference from the USB cable. I tried shielding it —
-                no difference. Then I noticed the 3.3V rail on my breadboard is sagging to
-                about 3.1V under load, which could be affecting the ADC reference voltage.
-                Still investigating. Added a 100µF cap across the power rails as a test.
+                Apparently, such a thing happens when the PC can't detect the microcontrollers. After connecting
+                and disconnecting the ESP32, I noticed that my laptop detects the connection, but can't identify 
+                what the ESP32 is. After checking the device manager and again connecting and disconnecting multiple times
+                I became sure that my device is not being picked up which would mean it's a driver issue.
               </p>
               <div class="callout">
                 <strong>Note to self</strong>
-                Look into AREF pin — if I connect an external 3.3V reference directly, the ADC
-                should stop being affected by rail sag. Read the datasheet section on ADC noise
-                reduction before trying anything else.
+                Make sure to visit the website provided by the device manufacturer when trying to use brand new equipment. They usually 
+                contain instructions for first use and useful information (i.e. documentation for that specific model, drivers, etc.).
               </div>
           </div>
         </div>
@@ -753,47 +773,67 @@ a:hover { text-decoration: underline; text-underline-offset: 3px; }
         <!-- Entry 2 -->
         <div class="log-entry">
           <div class="log-entry-header">
-            <span class="log-title">I²C working, SD card writing, first real data</span>
+            <span class="log-title">ESP32 is detected, test program runs successfully</span>
             <span class="log-entry-rule"></span>
-            <span class="log-date">Feb 24, 2026</span>
+            <span class="log-date">Mar 13, 2026</span>
           </div>
           <div class="log-body">
               <div class="log-flag log-flag-solved">✓ Milestone</div>
               <p>
-                Got the full pipeline working end-to-end. BME280 is talking over I²C at address
-                0x76, and every 5 seconds the Arduino writes a CSV row to the SD card:
-                timestamp, temperature, humidity, pressure. Pulled the card out and opened it
-                in a spreadsheet — actual data. Felt good.
+                Device is being detect after the drivers were installed. The port menu in the arduino IDE is no longer greyed out 
+                and now shows "COM10" as the available port. To test if it's working fine, I went to Tools > Examples > 01. Basics > Blink 
+                which is a simple blink program already written in the IDE and uploaded the program to the MC. The LEDs started blinking which 
+                means the device was connected successfully and is reading the code without any problems.
               </p>
-              <div class="code-block"><span class="c-comment">// Log format on SD card</span>
-<span class="c-type">unsigned long</span> ts = millis();
-<span class="c-fn">sprintf</span>(buf, <span class="c-str">"%lu,%.2f,%.2f,%.2f\n"</span>,
-        ts, bme.<span class="c-fn">readTemperature</span>(),
-        bme.<span class="c-fn">readHumidity</span>(),
-        bme.<span class="c-fn">readPressure</span>() / <span class="c-num">100.0F</span>);
-logFile.<span class="c-fn">print</span>(buf);</div>
+              <pre><code class="language-cpp">
+              // the setup function runs once when you press reset or power the board
+              void setup() {
+                // initialize digital pin LED_BUILTIN as an output.
+                pinMode(LED_BUILTIN, OUTPUT);
+              }
+
+              // the loop function runs over and over again forever
+              void loop() {
+                digitalWrite(LED_BUILTIN, HIGH);  // change state of the LED by setting the pin to the HIGH voltage level
+                delay(1000);                      // wait for a second
+                digitalWrite(LED_BUILTIN, LOW);   // change state of the LED by setting the pin to the LOW voltage level
+                delay(1000);                      // wait for a second
+              }</code></pre>
               <p>
-                One issue: if the SD card isn't inserted on boot, the sketch hangs.
-                I need to add a retry loop with a timeout instead of just
-                <code style="font-family:var(--font-mono);font-size:12px;background:var(--bg-3);padding:2px 6px;border-radius:2px;">while(!SD.begin())</code>.
-                Not critical but annoying.
+                Note that the
+                <code style="font-family:var(--font-mono);font-size:12px;background:var(--bg-3);padding:2px 6px;border-radius:2px;">LED_BUILTIN</code>
+                refers to the pin to which the builtin LED is assigned. A quick look at the documentation file tells us that LED IO2 is at pin 2.
               </p>
+              <figure style="margin: 20px 0 4px;">
+                <img src="Images/ESP32_Pintout.png" alt="FREENOVE ESP32 WROOM Board Pinout diagram" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);">
+                <figcaption style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.6;">
+                  <strong style="color:var(--text-2);">FREENOVE ESP32 WROOM Board pinout.</strong>
+                  Pin colour groups: <span style="color:#d65d0e;">PWD</span> = power rails (3.3V / 5V), GND = ground,
+                  <span style="color:#458588;">Serial</span> = debug/programming, <span style="color:#98971a;">ADCX_CH</span> = ADC channels,
+                  <span style="color:#d79921;">RESET</span> = chip reset, GPIOX = general I/O, <span style="color:#b16286;">TOUCHX</span> = capacitive touch,
+                  HALL = hall-effect sensor, PWM = PWM-capable, <span style="color:#fb4934;">LED</span> = on-board LED,
+                  <span style="color:#83a598;">SPI</span> = SPI bus, <span style="color:#8ec07c;">CAMERA</span> = camera interface,
+                  <span style="color:#d3869b;">I2C</span> = I²C bus, I2S = audio bus, DAC = digital-to-analog,
+                  <span style="color:#fe8019;">STRAP</span> = boot strapping pins.
+                </figcaption>
+              </figure>
           </div>
         </div>
 
         <!-- Entry 3 -->
         <div class="log-entry">
           <div class="log-entry-header">
-            <span class="log-title">First I²C scan — figuring out addresses</span>
+            <span class="log-title">Display - setup and testing</span>
             <span class="log-entry-rule"></span>
-            <span class="log-date">Feb 18, 2026</span>
+            <span class="log-date">Mar 14, 2026</span>
           </div>
           <div class="log-body">
-              <div class="log-flag log-flag-learning">↗ Learning</div>
+              <!--<div class="log-flag log-flag-learning">↗ Learning</div>-->
               <p>
-                Before writing any sensor code I ran the standard I²C scanner sketch to see
-                what addresses show up on the bus. The BME280 showed up at 0x76. Good — that's
-                the default with SDO pulled low.
+                The display setup was pretty straight forward. There are four pins on the display each corresponding to "GND", "VCC", "SCL", and "SDA", respectively.
+                A quick look at the SSD1306 Datasheet tells us that for IC logic, a voltage of 1.65 to 3.3 Volts is required, which means that "VCC" must be connected to 
+                the 3.3 V pin on the ESP32. The clock and data pins of the display correspond to the I2C_SCL and I2C_SDA pins on the ESP32 (pins 22 and 21). Similarly, GND 
+                was connected to the ground pin of the ESP32.
               </p>
               <p>
                 Spent longer than I'd like to admit trying to figure out why my SDA/SCL pull-up
@@ -829,25 +869,11 @@ logFile.<span class="c-fn">print</span>(buf);</div>
               <span class="resource-source">Bosch Sensortec</span>
             </div>
           </a>
-          <a class="resource-card" href="https://www.arduino.cc/reference/en/libraries/sd/" target="_blank">
-            <span class="resource-title">Arduino SD Library Reference</span>
-            <div class="resource-meta">
-              <span class="resource-type">Docs</span>
-              <span class="resource-source">Arduino</span>
-            </div>
-          </a>
-          <a class="resource-card" href="https://playground.arduino.cc/Main/I2cScanner/" target="_blank">
-            <span class="resource-title">I²C Scanner Sketch</span>
-            <div class="resource-meta">
-              <span class="resource-type">Reference</span>
-              <span class="resource-source">Arduino Playground</span>
-            </div>
-          </a>
-          <a class="resource-card" href="#" target="_blank">
-            <span class="resource-title">ATmega328P Datasheet — ADC section</span>
+          <a class="resource-card" href="https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf" target="_blank">
+            <span class="resource-title">SSD1306 Datasheet</span>
             <div class="resource-meta">
               <span class="resource-type">Datasheet</span>
-              <span class="resource-source">Microchip</span>
+              <span class="resource-source">Adafruit</span>
             </div>
           </a>
         </div>
@@ -885,6 +911,11 @@ logFile.<span class="c-fn">print</span>(buf);</div>
   </a>
 </nav>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>Prism.highlightAll();</script>
 <script>
   // Theme toggle
   function toggleTheme() {
