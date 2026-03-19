@@ -371,12 +371,12 @@ pre {
   background: #282520;
   color: #e8dfc8;
   border-radius: var(--radius);
-  padding: 20px 22px;
+  padding: 0;
   font-size: 12.5px;
   line-height: 1.75;
   overflow-x: auto;
   border: 1px solid #3a3428;
-  margin: 16px 0;
+  margin: 0;
 }
 pre code {
   background: transparent;
@@ -804,17 +804,10 @@ pre code .token { color: #e8dfc8; }
                 <code style="font-family:var(--font-mono);font-size:12px;background:var(--bg-3);padding:2px 6px;border-radius:2px;">LED_BUILTIN</code>
                 refers to the pin to which the builtin LED is assigned. A quick look at the documentation file tells us that LED IO2 is at pin 2.
               </p>
-              <figure style="margin: 20px 0 4px;">
+              <figure style="margin: 20px 0 4px; text-align: center;">
                 <img src="Images/ESP32_Pintout.png" alt="FREENOVE ESP32 WROOM Board Pinout diagram" style="width:100%;border-radius:var(--radius);border:1px solid var(--border);">
                 <figcaption style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.6;">
                   <strong style="color:var(--text-2);">FREENOVE ESP32 WROOM Board pinout.</strong>
-                  Pin colour groups: <span style="color:#d65d0e;">PWD</span> = power rails (3.3V / 5V), GND = ground,
-                  <span style="color:#458588;">Serial</span> = debug/programming, <span style="color:#98971a;">ADCX_CH</span> = ADC channels,
-                  <span style="color:#d79921;">RESET</span> = chip reset, GPIOX = general I/O, <span style="color:#b16286;">TOUCHX</span> = capacitive touch,
-                  HALL = hall-effect sensor, PWM = PWM-capable, <span style="color:#fb4934;">LED</span> = on-board LED,
-                  <span style="color:#83a598;">SPI</span> = SPI bus, <span style="color:#8ec07c;">CAMERA</span> = camera interface,
-                  <span style="color:#d3869b;">I2C</span> = I²C bus, I2S = audio bus, DAC = digital-to-analog,
-                  <span style="color:#fe8019;">STRAP</span> = boot strapping pins.
                 </figcaption>
               </figure>
           </div>
@@ -825,7 +818,7 @@ pre code .token { color: #e8dfc8; }
           <div class="log-entry-header">
             <span class="log-title">Display - setup and testing</span>
             <span class="log-entry-rule"></span>
-            <span class="log-date">Mar 14, 2026</span>
+            <span class="log-date">Mar 13, 2026</span>
           </div>
           <div class="log-body">
               <!--<div class="log-flag log-flag-learning">↗ Learning</div>-->
@@ -836,15 +829,205 @@ pre code .token { color: #e8dfc8; }
                 was connected to the ground pin of the ESP32.
               </p>
               <p>
-                Spent longer than I'd like to admit trying to figure out why my SDA/SCL pull-up
-                resistors weren't needed — turns out the Arduino Uno's Wire library enables
-                the internal pull-ups automatically. I had 4.7kΩ resistors wired in and everything
-                still worked, but now I understand why the datasheet specifies external ones for
-                longer cable runs or higher bus speeds.
+                After that I uploaded the following test code to see if the display works or not. More information on how I coded this can be found from the "example" folders
+                of the documentation pages of the libraries used. I provided some comments to make it easier to understand.
               </p>
+              <pre><code class="language-cpp">
+                #include <Wire.h> // required library whenever we use I2C protocol
+                #include <Adafruit_GFX.h> // Adafruit graphical library used for drawing
+                #include <Adafruit_SSD1306.h> // Specific library included when using the SSD1306 chip
+
+                // From the examples provided in the documentation for Adafruit_SSD1306.h 
+                // and by looking at the datasheet for the device we see that the following
+                // variables must be defined for our specific device
+                #define SCREEN_WIDTH 128 // Display width
+                #define SCREEN_HEIGHT 64 // Display height
+                // Skips reset (we don't have a specific pin allocated for resetting the screen so 
+                // we've told Adafruit to skip hardware reset)
+                #define OLED_RESET -1 
+
+                // From the documentation, we learn that the following initializes an object called "display" 
+                // with the following attributes
+                Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+                void setup() {
+                  // From the documentation, we learn that display.begin() initializes the display hardware
+                  // SSD1306_SWITCHCAPVCC tells the device to generate its own internal power as opposed to an external one, our device 
+                  // does this so no need to change it
+                  // 0x3C is the I2C address for our display, from my research, 128 x 64 resolution displays of this 
+                  // brand usually have this specific address
+                  // If the display fails, we display a faliure message and have an infinite loop there (error)
+                  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+                    Serial.println("SSD1306 allocation failed");
+                    // infinite loop to show error
+                    for(;;);
+                  }
+
+                  // clears any data from the screen buffer
+                  display.clearDisplay();
+
+                  // set text size
+                  display.setTextSize(2);
+
+                  // set text color
+                  display.setTextColor(SSD1306_WHITE);
+
+                  // begin writing at the left most part of the screen (x = 0) with 20 pixel spce from the top (y = 20)
+                  display.setCursor(0, 20);
+
+                  // print message and add line break at the end
+                  display.println("Hello");
+                  
+                  // print message and add line break at the end
+                  display.println("World!");
+
+                  // everything above this line just loads information into the memory, this command actually displays it
+                  display.display();
+                }
+
+                // there's nothing in the loop because this is a static program, we don't need anything to run many times
+                void loop() {
+                  // Nothing here
+                }
+              </code></pre>
           </div>
         </div>
 
+        <!-- Entry 4 -->
+        <div class="log-entry">
+          <div class="log-entry-header">
+            <span class="log-title">BME280 sensor - setup and testing</span>
+            <span class="log-entry-rule"></span>
+            <span class="log-date">Mar 13, 2026</span>
+          </div>
+          <div class="log-body">
+            <div class="log-flag log-flag-problem">⚠ Problem</div>
+            <p>
+              When unpacking the sensor, I noticed that the pins were separate from the sensor. At first I thought sandwitching the black block 
+              part of the pins between the sensor and the breadboard would be enough to connect it, but after running the sensor code, I noticed that
+              nothing is being displayed. The code used to run the sensor is as follows. Sufficient comments were provided to explain functionality.
+              <pre><code class="language-cpp">
+                #include <Wire.h>
+                #include <Adafruit_GFX.h>
+                #include <Adafruit_SSD1306.h>
+                #include <Adafruit_BME280.h> // including an additional BME280 device specific library
+
+                #define SCREEN_WIDTH 128
+                #define SCREEN_HEIGHT 64
+                #define OLED_RESET -1
+
+                Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+                // creating the object bme which represents the sensor similar to the one above. 
+                // after looking at examples provided by the documentation, I realized that it doesn't take any
+                // parameters and uses the I2C default settings.
+                Adafruit_BME280 bme;
+
+                void setup() {
+                  // Here, we initialize a USB serial communication between the ESP32 and our computer
+                  // I noticed that the example in the documentation uses 9600 but after doing some more research,
+                  // I noticed that the modern default is 115200 which is faster as well
+                  Serial.begin(115200);
+                  
+                  // Initialize OLED
+                  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+                    Serial.println("SSD1306 allocation failed");
+                    for(;;);
+                  }
+                  
+                  // Initialize BME280
+                  // This is similar to the OLED initialization above with a few small differences.
+                  // the command bme.begin(0x76) initializes the sensor. the address 0x76 is the I2C address of the BME280
+                  // some other devices use different addresses like 0x77
+                  if (!bme.begin(0x76)) {
+                    // The line below uses Serial to print an error message in the Serial Monitor of the computer within the IDE
+                    Serial.println("Could not find BME280 sensor!");
+                    // The following will show an error message on the OLED display
+                    display.clearDisplay();
+                    display.setTextSize(1);
+                    display.setTextColor(SSD1306_WHITE);
+                    display.setCursor(0, 0);
+                    display.println("BME280 Error!");
+                    display.display();
+                    for(;;);
+                  }
+
+                  // prints if initialization is successfull
+                  Serial.println("BME280 found!");
+                }
+
+                void loop() {
+                  // Initialize variables
+                  // The functions themselves are used in the examples provided by the documentation
+                  // but I had to dig in the datasheet to find the format of the data that is presented which is as follows:
+                  // Reads temperature in celcius
+                  float temp = bme.readTemperature();
+                  // reads relative humidity as a percentage
+                  float humidity = bme.readHumidity();
+                  // reads pressure in Pascals, division by 100.0F converts it to hecto pascals (hPa) which si a more common unit
+                  // for measuring atmospheric pressure
+                  float pressure = bme.readPressure() / 100.0F;
+                  
+                  // Display on OLED
+                  display.clearDisplay();
+                  display.setTextSize(1);
+                  display.setTextColor(SSD1306_WHITE);
+                  
+                  display.setCursor(0, 0);
+                  display.print("Temp: ");
+                  display.print(temp);
+                  display.println(" C");
+                  
+                  display.setCursor(0, 20);
+                  display.print("Humidity: ");
+                  display.print(humidity);
+                  display.println(" %");
+                  
+                  display.setCursor(0, 40);
+                  display.print("Pressure: ");
+                  display.print(pressure);
+                  display.println(" hPa");
+                  
+                  display.display();
+                  
+                  delay(2000);  // Update every 2 seconds
+                }
+              </code></pre>              
+
+              Apparently, when the device and the pins are separate, they must be soldered. Well, I don't have a solder so 
+              I'll order one and continue once it arrives.
+            </p>
+          </div>
+        </div>
+
+        <!-- Entry 5 -->
+        <div class="log-entry">
+          <div class="log-entry-header">
+            <span class="log-title">BME280 setup - soldering the pins</span>
+            <span class="log-entry-rule"></span>
+            <span class="log-date">Mar 13, 2026</span>
+          </div>
+          <div class="log-body">
+            <div class="log-flag log-flag-solved">✓ Milestone</div>
+            <p>
+              Thanks to amazon prime, I got the solder within a day of ordering it. I soldered the pins with the longer end of 
+              the pins sticking into the breadboard and the blocks and shorter ends sticking out. Then I sandwitched the black blocks
+              between the breadboard and the hardware side of the sensor facing down. Since this was my first time soldering anything, 
+              I have to say that this was a pretty miserable experience. The pins were very close together and I shorted them quite 
+              a few times until the results were finally acceptable.
+            </p>
+            <figure style="margin: 20px 0 4px; text-align: center;">
+              <img src="Images/BME280_soldered.jpg" alt="BME280 sensor after soldering" style="width:50%;border-radius:var(--radius);border:1px solid var(--border);">
+              <figcaption style="font-family:var(--font-mono);font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.6;">
+                <strong style="color:var(--text-2)">BME280 - My first soldered component (not pretty but it works)</strong>
+              </figcaption>
+            </figure>
+            <div class="callout">
+              <strong>Note to self</strong>
+              Be very careful when soldering sensors. If you don't work quickly enough and take too long, you might overheat the sensor
+              which might damage some of the components.
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- What's Next -->
@@ -873,6 +1056,34 @@ pre code .token { color: #e8dfc8; }
             <span class="resource-title">SSD1306 Datasheet</span>
             <div class="resource-meta">
               <span class="resource-type">Datasheet</span>
+              <span class="resource-source">Adafruit</span>
+            </div>
+          </a>
+          <a class="resource-card" href="https://github.com/adafruit/Adafruit_SSD1306/tree/master" target="_blank">
+            <span class="resource-title">Adafruit_SSD1306 Library</span>
+            <div class="resource-meta">
+              <span class="resource-type">Documentation</span>
+              <span class="resource-source">Adafruit</span>
+            </div>
+          </a>
+          <a class="resource-card" href="https://github.com/luisllamasbinaburo/Arduino-I2CScanner/tree/master" target="_blank">
+            <span class="resource-title">I2C Scanner Library</span>
+            <div class="resource-meta">
+              <span class="resource-type">Documentation</span>
+              <span class="resource-source">Arduino</span>
+            </div>
+          </a>
+          <a class="resource-card" href="https://github.com/adafruit/Adafruit-GFX-Library" target="_blank">
+            <span class="resource-title">Adafruit-GFX (graphics) Library</span>
+            <div class="resource-meta">
+              <span class="resource-type">Documentation</span>
+              <span class="resource-source">Adafruit</span>
+            </div>
+          </a>
+          <a class="resource-card" href="https://github.com/adafruit/Adafruit_BME280_Library/tree/master" target="_blank">
+            <span class="resource-title">Adafruit_BME280 Library</span>
+            <div class="resource-meta">
+              <span class="resource-type">Documentation</span>
               <span class="resource-source">Adafruit</span>
             </div>
           </a>
