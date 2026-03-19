@@ -833,9 +833,9 @@ pre code .token { color: #e8dfc8; }
                 of the documentation pages of the libraries used. I provided some comments to make it easier to understand.
               </p>
               <pre><code class="language-cpp">
-                #include <Wire.h> // required library whenever we use I2C protocol
-                #include <Adafruit_GFX.h> // Adafruit graphical library used for drawing
-                #include <Adafruit_SSD1306.h> // Specific library included when using the SSD1306 chip
+                #include &lt;Wire.h&gt; // required library whenever we use I2C protocol
+                #include &lt;Adafruit_GFX.h&gt; // Adafruit graphical library used for drawing
+                #include &lt;Adafruit_SSD1306.h&gt; // Specific library included when using the SSD1306 chip
 
                 // From the examples provided in the documentation for Adafruit_SSD1306.h 
                 // and by looking at the datasheet for the device we see that the following
@@ -907,10 +907,10 @@ pre code .token { color: #e8dfc8; }
               part of the pins between the sensor and the breadboard would be enough to connect it, but after running the sensor code, I noticed that
               nothing is being displayed. The code used to run the sensor is as follows. Sufficient comments were provided to explain functionality.
               <pre><code class="language-cpp">
-                #include <Wire.h>
-                #include <Adafruit_GFX.h>
-                #include <Adafruit_SSD1306.h>
-                #include <Adafruit_BME280.h> // including an additional BME280 device specific library
+                #include &lt;Wire.h&gt; 
+                #include &lt;Adafruit_GFX.h&gt; 
+                #include &lt;Adafruit_SSD1306.h&gt; 
+                #include &lt;Adafruit_BME280.h&gt; // including an additional BME280 device specific library
 
                 #define SCREEN_WIDTH 128
                 #define SCREEN_HEIGHT 64
